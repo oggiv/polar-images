@@ -1,11 +1,20 @@
 # test.py
 # convert jpg to polar image in a image buffer and then convert buffer to an output jpg
 
+"""
+
+Iterate over pixels in the output image
+
+  1. Convert Cartesian coordinates to polar
+  2. Round polar coordinates to closest start of segment
+
+"""
+
 from PIL import Image
 import io, math
 
 # how many segments are in each circle
-segments = 10000
+segments = 100
 
 # todo: make into a terminal argument
 input_image_path = 'ei.jpg'
@@ -34,26 +43,27 @@ output_image = Image.new('RGB', (width, height), 'black')
 for x in range(width):
   for y in range(height):
 
-    radius = math.floor(math.sqrt(x*x + y*y))
+    # radius = math.sqrt(x*x + y*y)
 
-    angle_step_size = 2 * math.pi / segments
+    segment_angle = 2 * math.pi / segments
 
     horizontal = x - middle_x
     vertical = y - middle_y
 
+    radius = math.sqrt(horizontal*horizontal + vertical*vertical)
+
     if horizontal != 0:
-      output_angle = math.atan(vertical / horizontal)
+      output_angle = math.atan2(vertical, horizontal)
     else:
       if 0 <= vertical:
-        output_angle = -math.pi/2
-      else:
         output_angle = math.pi/2
+      else:
+        output_angle = -math.pi/2
 
-    input_angle = angle_step_size * math.floor(output_angle / angle_step_size)
+    input_angle = segment_angle * math.ceil(output_angle / segment_angle)
 
-    input_x = math.floor(radius * math.cos(input_angle))
-    input_y = math.floor(radius * math.sin(input_angle))
-
+    input_x = math.ceil(radius * math.cos(input_angle)) + middle_x
+    input_y = math.ceil(radius * math.sin(input_angle)) + middle_y
 
     if input_x < 0:
       input_x = 0
